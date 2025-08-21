@@ -73,20 +73,30 @@ function CodeView() {
 
     const GenerateAiCode=async()=>{
         setLoading(true);
-        const PROMPT=JSON.stringify(messages)+" "+Prompt.CODE_GEN_PROMPT;
-        const result=await axios.post('/api/gen-ai-code',{
-            prompt:PROMPT
-        });
-        
-        // Preprocess AI-generated files
-        const processedAiFiles = preprocessFiles(result.data?.files || {});
-        const mergedFiles = {...Lookup.DEFAULT_FILE, ...processedAiFiles};
-        setFiles(mergedFiles);
+        try {
+            const PROMPT=JSON.stringify(messages)+" "+Prompt.CODE_GEN_PROMPT;
+            const result=await axios.post('/api/gen-ai-code',{
+                prompt:PROMPT
+            });
+            
+            if (result.data.error) {
+                console.error('AI Code Generation Error:', result.data.error);
+                setLoading(false);
+                return;
+            }
 
-        await UpdateFiles({
-            workspaceId:id,
-            files:result.data?.files
-        });
+            // Preprocess AI-generated files
+            const processedAiFiles = preprocessFiles(result.data?.files || {});
+            const mergedFiles = {...Lookup.DEFAULT_FILE, ...processedAiFiles};
+            setFiles(mergedFiles);
+
+            await UpdateFiles({
+                workspaceId:id,
+                files:result.data?.files
+            });
+        } catch (error) {
+            console.error('Error calling AI code generation API:', error);
+        }
         setLoading(false);
     }
     
