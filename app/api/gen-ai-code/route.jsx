@@ -8,6 +8,7 @@ export async function POST(req){
         const resp=result.response.text();
         return NextResponse.json(JSON.parse(resp));
     }catch(e){
-        return NextResponse.json({error:resp});
+        console.error('Error generating AI code:', e);
+        return NextResponse.json({error: e.message || 'Failed to generate code'});
     }
 }
