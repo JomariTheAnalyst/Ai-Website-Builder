@@ -11,6 +11,7 @@ export async function POST(req) {
         return NextResponse.json({result:AIResp})
     }catch(e)
     {
-        return NextResponse.json({error:e})
+        console.error('Error generating AI chat response:', e);
+        return NextResponse.json({error: e.message || 'Failed to generate chat response'}, {status: 500});
     }
 }
