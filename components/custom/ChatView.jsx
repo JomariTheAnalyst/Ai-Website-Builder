@@ -41,20 +41,38 @@ function ChatView() {
 
     const GetAiResponse = async () => {
         setLoading(true);
-        const PROMPT = JSON.stringify(messages) + Prompt.CHAT_PROMPT;
-        const result = await axios.post('/api/ai-chat', {
-            prompt: PROMPT
-        });
+        try {
+            const PROMPT = JSON.stringify(messages) + Prompt.CHAT_PROMPT;
+            const result = await axios.post('/api/ai-chat', {
+                prompt: PROMPT
+            });
 
-        const aiResp = {
-            role: 'ai',
-            content: result.data.result
+            if (result.data.error) {
+                console.error('AI Chat Error:', result.data.error);
+                const errorResp = {
+                    role: 'ai',
+                    content: 'Sorry, I encountered an error generating a response. Please try again.'
+                }
+                setMessages(prev => [...prev, errorResp]);
+            } else {
+                const aiResp = {
+                    role: 'ai',
+                    content: result.data.result
+                }
+                setMessages(prev => [...prev, aiResp]);
+                await UpdateMessages({
+                    messages: [...messages, aiResp],
+                    workspaceId: id
+                });
+            }
+        } catch (error) {
+            console.error('Error calling AI chat API:', error);
+            const errorResp = {
+                role: 'ai',
+                content: 'Sorry, I encountered an error. Please check your internet connection and try again.'
+            }
+            setMessages(prev => [...prev, errorResp]);
         }
-        setMessages(prev => [...prev, aiResp]);
-        await UpdateMessages({
-            messages: [...messages, aiResp],
-            workspaceId: id
-        })
         setLoading(false);
     }
 
